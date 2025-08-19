@@ -33,8 +33,6 @@ cd behavior_tracer
 ### 2. 安装依赖
 
 ```bash
-pnpm install
-# 或者
 npm install
 ```
 
@@ -65,8 +63,6 @@ NODE_ENV=development
 ### 5. 启动开发服务器
 
 ```bash
-pnpm dev
-# 或者
 npm run dev
 ```
 
@@ -152,19 +148,19 @@ src/
 
 ```bash
 # 开发服务器
-pnpm dev
+npm run dev
 
 # 构建生产版本
-pnpm build
+npm run build
 
 # 预览生产版本
-pnpm preview
+npm run preview
 
 # 类型检查
-pnpm type-check
+npm run check
 
-# 代码格式化
-pnpm format
+# 代码检查
+npm run lint
 ```
 
 ## 🤝 贡献
