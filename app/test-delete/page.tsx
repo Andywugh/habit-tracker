@@ -84,7 +84,7 @@ export default function TestDeletePage() {
         console.log('API返回结果:', result)
         
         if (result.error) {
-          setTestResult(`删除失败: ${result.error.message}`)
+          setTestResult(`删除失败: ${result.error}`)
         } else {
           setTestResult('删除成功！')
           console.log('删除成功')

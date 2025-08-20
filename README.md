@@ -8,17 +8,21 @@
 - **进度追踪**: 记录每日完成情况
 - **连续天数**: 自动计算习惯坚持的连续天数
 - **用户认证**: 安全的用户注册和登录系统
+- **头像上传**: 支持用户头像上传到Cloudflare R2
+- **内容管理**: 动态内容管理系统
+- **邮件通知**: 成就提醒、每日提醒和周报功能
 - **响应式设计**: 完美适配桌面和移动设备
 - **实时同步**: 基于Supabase的实时数据同步
 
 ## 🛠️ 技术栈
 
-- **前端**: React 18 + TypeScript
+- **前端**: Next.js 14 + React 18 + TypeScript
 - **样式**: Tailwind CSS
 - **状态管理**: Zustand
 - **UI组件**: Headless UI + Heroicons
 - **后端**: Supabase (PostgreSQL + Auth + Real-time)
-- **构建工具**: Vite
+- **文件存储**: Cloudflare R2
+- **邮件服务**: React Email + Resend
 - **部署**: Vercel (推荐)
 
 ## 📦 安装和设置
@@ -38,21 +42,44 @@ npm install
 
 ### 3. 设置环境变量
 
-复制 `.env.example` 到 `.env.local` 并填入您的Supabase配置：
-
-```bash
-cp .env.example .env.local
-```
-
-编辑 `.env.local`：
+创建 `.env.local` 文件并添加以下配置：
 
 ```env
+# Supabase 配置 (必需)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-NEXT_PUBLIC_APP_URL=http://localhost:5173
-NODE_ENV=development
+
+# Cloudflare R2 配置 (头像上传功能)
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key_id
+R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
+R2_BUCKET_NAME=your_bucket_name
+R2_REGION=auto
+
+# Next.js 配置
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret_key
+
+# Resend 配置
+RESEND_API_KEY=your_resend_access_key
+
+# 应用配置
+APP_NAME=行为追踪器
+APP_URL=http://localhost:3000
 ```
+
+#### 获取配置信息：
+
+**Supabase配置：**
+1. 登录 [Supabase](https://supabase.com)
+2. 选择您的项目
+3. 在设置 > API 中找到项目URL和anon key
+
+**Cloudflare R2配置：**
+1. 登录 [Cloudflare](https://cloudflare.com)
+2. 创建R2存储桶
+3. 在R2 > 管理API令牌中创建访问密钥
+4. 获取Account ID、Access Key ID和Secret Access Key
 
 ### 4. 设置Supabase数据库
 
@@ -60,13 +87,22 @@ NODE_ENV=development
 2. 在SQL编辑器中运行 `supabase-init.sql` 脚本
 3. 确保启用了行级安全策略 (RLS)
 
-### 5. 启动开发服务器
+### 5. 运行数据库迁移
+
+在Supabase控制台的SQL编辑器中按顺序执行以下迁移文件：
+1. `supabase/migrations/001_initial_schema.sql`
+2. `supabase/migrations/002_update_user_profiles.sql`
+3. `supabase/migrations/003_create_user_notification_settings.sql`
+4. `supabase/migrations/004_add_missing_fields.sql`
+5. `supabase/migrations/005_add_content_management.sql`
+
+### 6. 启动开发服务器
 
 ```bash
 npm run dev
 ```
 
-应用将在 `http://localhost:5173` 启动。
+应用将在 `http://localhost:3000` 启动。
 
 ## 🗄️ 数据库结构
 
@@ -75,6 +111,7 @@ npm run dev
 - `name`: 用户姓名
 - `avatar_url`: 头像URL
 - `timezone`: 时区设置
+- `notification_enabled`: 通知开关
 
 ### 习惯表 (habits)
 - `id`: 习惯ID
@@ -92,6 +129,21 @@ npm run dev
 - `user_id`: 用户ID
 - `completed_at`: 完成时间
 - `notes`: 备注
+
+### 用户通知设置表 (user_notification_settings)
+- `user_id`: 用户ID
+- `email_daily_reminder`: 每日提醒邮件
+- `email_weekly_summary`: 周报邮件
+- `email_achievement_alerts`: 成就提醒邮件
+- `push_reminder`: 推送提醒
+- `reminder_time`: 提醒时间
+
+### 内容管理表 (app_content)
+- `id`: 内容ID
+- `key`: 内容键名
+- `value`: 内容值
+- `category`: 内容分类
+- `description`: 内容描述
 
 ## 🚀 部署
 

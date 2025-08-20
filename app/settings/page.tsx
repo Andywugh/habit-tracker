@@ -5,16 +5,19 @@ import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { redirect } from 'next/navigation'
-import { User, Bell, Shield, Trash2, Save } from 'lucide-react'
+import { User, Bell, Shield, Trash2, Save, Camera } from 'lucide-react'
+import { useContent } from '@/hooks/useContent'
 
 export default function SettingsPage() {
   const { user, isLoading, signOut } = useAuthStore()
+  const { content } = useContent("settings")
   const [profile, setProfile] = useState({
     display_name: '',
     email: '',
-    timezone: 'Asia/Shanghai'
+    timezone: 'Asia/Shanghai',
+    avatar_url: ''
   })
   const [notifications, setNotifications] = useState({
     daily_reminder: true,
@@ -24,6 +27,8 @@ export default function SettingsPage() {
   })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     // 初始化认证状态
@@ -41,7 +46,8 @@ export default function SettingsPage() {
       setProfile({
         display_name: user.user_metadata?.display_name || '',
         email: user.email || '',
-        timezone: user.user_metadata?.timezone || 'Asia/Shanghai'
+        timezone: user.user_metadata?.timezone || 'Asia/Shanghai',
+        avatar_url: user.user_metadata?.avatar_url || ''
       })
       
       // 加载通知设置
@@ -103,6 +109,58 @@ export default function SettingsPage() {
     return null
   }
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型和大小
+    if (!file.type.startsWith("image/")) {
+      setMessage("请选择图片文件");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB限制
+      setMessage("图片大小不能超过5MB");
+      return;
+    }
+
+    setUploading(true);
+    setMessage("");
+
+    try {
+      // 调用上传API
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { session } = useAuthStore.getState();
+      const response = await fetch("/api/upload/avatar", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("上传失败");
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setProfile((prev) => ({ ...prev, avatar_url: result.data.url }));
+        setMessage("头像上传成功！");
+      } else {
+        setMessage(result.error || "上传失败");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      setMessage("上传失败，请重试");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     setSaving(true)
     setMessage('')
@@ -131,6 +189,7 @@ export default function SettingsPage() {
         body: JSON.stringify({
           name: profile.display_name.trim(),
           timezone: profile.timezone,
+          avatar_url: profile.avatar_url, // 现在包含头像URL
         }),
       })
 
@@ -244,7 +303,9 @@ export default function SettingsPage() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">设置</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          {content.page_title || "设置"}
+        </h1>
         
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
@@ -260,10 +321,44 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <User className="h-5 w-5" />
-                <span>用户资料</span>
+                <span>{content.profile_section_title || "用户资料"}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* 新增头像上传区域 */}
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <img
+                    src={profile.avatar_url || "/default-avatar.svg"}
+                    alt="头像"
+                    className="w-16 h-16 rounded-full object-cover border border-gray-200"
+                    onError={(e) => {
+                      e.currentTarget.src = "/default-avatar.svg";
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-full p-1 hover:bg-emerald-700 disabled:bg-gray-400"
+                  >
+                    <Camera className="h-3 w-3" />
+                  </button>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium">头像</h3>
+                  <p className="text-xs text-gray-500">
+                    {uploading ? "上传中..." : "点击更换头像图片"}
+                  </p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   显示名称
@@ -321,7 +416,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Bell className="h-5 w-5" />
-                <span>通知设置</span>
+                <span>{content.notification_section_title || "通知设置"}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
