@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Layout } from '../components/layout/Layout'
+
 import { useAuthStore } from '../store/authStore'
 import { supabase } from '../lib/supabase'
 import { Button } from '../components/ui/Button'
@@ -17,13 +17,7 @@ interface UserProfile {
   theme: 'light' | 'dark' | 'system'
 }
 
-type Page = 'dashboard' | 'analytics' | 'settings'
-
-interface SettingsProps {
-  onNavigate?: (page: Page) => void
-}
-
-export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
+export default function Settings() {
   const { user, signOut } = useAuthStore()
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
@@ -186,16 +180,14 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="text-center py-8">
-          <div className="text-lg text-gray-600">加载设置中...</div>
-        </div>
-      </Layout>
+      <div className="text-center py-8">
+        <div className="text-lg text-gray-600">加载设置中...</div>
+      </div>
     )
   }
 
   return (
-    <Layout currentPage="settings" onNavigate={onNavigate}>
+    <>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -405,6 +397,6 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
           </div>
         </div>
       )}
-    </Layout>
+    </>
   )
 }

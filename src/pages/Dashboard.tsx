@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { Layout } from '../components/layout/Layout'
 import { HabitCard } from '../components/habits/HabitCard'
 import { HabitForm } from '../components/habits/HabitForm'
 import { Button } from '../components/ui/Button'
@@ -8,8 +7,6 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import { Plus, Target, TrendingUp, Calendar, Award, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
-
-type Page = 'dashboard' | 'analytics' | 'settings'
 
 interface Habit {
   id: string
@@ -30,11 +27,7 @@ interface HabitLog {
   user_id: string
 }
 
-interface DashboardProps {
-  onNavigate?: (page: Page) => void
-}
-
-export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuthStore()
   const [habits, setHabits] = useState<Habit[]>([])
   const [habitLogs, setHabitLogs] = useState<HabitLog[]>([])
@@ -186,7 +179,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   }
 
   return (
-    <Layout currentPage="dashboard" onNavigate={onNavigate}>
+    <>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -317,7 +310,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         habit={editingHabit}
         onSave={handleSaveHabit}
       />
-    </Layout>
+    </>
   )
 }
 

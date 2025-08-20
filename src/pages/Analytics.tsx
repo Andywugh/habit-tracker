@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { Layout } from '../components/layout/Layout'
 import { useAuthStore } from '../store/authStore'
 import { supabase } from '../lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
@@ -30,13 +29,7 @@ interface HabitTypeData {
 
 const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444']
 
-type Page = 'dashboard' | 'analytics' | 'settings'
-
-interface AnalyticsProps {
-  onNavigate?: (page: Page) => void
-}
-
-export const Analytics: React.FC<AnalyticsProps> = ({ onNavigate }) => {
+const Analytics: React.FC = () => {
   const { user } = useAuthStore()
   const [habitStats, setHabitStats] = useState<HabitStats[]>([])
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([])
@@ -194,16 +187,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({ onNavigate }) => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="text-center py-8">
-          <div className="text-lg text-gray-600">加载分析数据中...</div>
-        </div>
-      </Layout>
+      <div className="text-center py-8">
+        <div className="text-lg text-gray-600">加载分析数据中...</div>
+      </div>
     )
   }
 
   return (
-    <Layout currentPage="analytics" onNavigate={onNavigate}>
+    <>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -314,7 +305,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ onNavigate }) => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -415,6 +406,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ onNavigate }) => {
           </div>
         </CardContent>
       </Card>
-    </Layout>
+    </>
   )
 }
+
+export default Analytics

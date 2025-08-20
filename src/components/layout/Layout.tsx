@@ -1,17 +1,18 @@
+'use client'
+
 import React from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useAuthStore } from '../../store/authStore'
 import { Button } from '../ui/Button'
 import { LogOut, Home, BarChart3, Settings } from 'lucide-react'
 
-type Page = 'dashboard' | 'analytics' | 'settings'
-
 interface LayoutProps {
   children: React.ReactNode
-  currentPage?: Page
-  onNavigate?: (page: Page) => void
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'dashboard', onNavigate }) => {
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const pathname = usePathname()
   const { user, signOut } = useAuthStore()
 
   const handleSignOut = async () => {
@@ -19,9 +20,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'dashboa
   }
 
   const navItems = [
-    { id: 'dashboard' as Page, label: '仪表盘', icon: Home },
-    { id: 'analytics' as Page, label: '数据分析', icon: BarChart3 },
-    { id: 'settings' as Page, label: '设置', icon: Settings },
+    { href: '/', label: '仪表盘', icon: Home },
+    { href: '/analytics', label: '数据分析', icon: BarChart3 },
+    { href: '/settings', label: '设置', icon: Settings },
   ]
 
   return (
@@ -31,27 +32,26 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage = 'dashboa
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-8">
               <h1 className="text-xl font-semibold text-gray-900">习惯追踪器</h1>
-              {onNavigate && (
-                <nav className="flex space-x-4">
-                  {navItems.map((item) => {
-                    const Icon = item.icon
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => onNavigate(item.id)}
-                        className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          currentPage === item.id
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                        }`}
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span>{item.label}</span>
-                      </button>
-                    )
-                  })}
-                </nav>
-              )}
+              <nav className="flex space-x-4">
+                {navItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">{user?.email}</span>
